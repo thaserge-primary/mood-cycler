@@ -22,5 +22,4 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# Generated app.json (from homeycompose, root only)
-/app.json
+# Note: app.json is committed to allow direct installation without build step
