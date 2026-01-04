@@ -1,0 +1,109 @@
+{
+  "id": "com.mood-cycler",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": ["local"],
+  "name": {
+    "en": "Mood Cycler",
+    "ru": "Переключатель настроений"
+  },
+  "description": {
+    "en": "Cycle through room moods with a virtual device",
+    "ru": "Переключайте настроения комнаты виртуальным устройством"
+  },
+  "category": ["tools"],
+  "permissions": ["homey:manager:api"],
+  "author": {
+    "name": "Mood Cycler Developer"
+  },
+  "brandColor": "#6B5B95",
+  "api": {
+    "getDevices": {
+      "method": "GET",
+      "path": "/devices"
+    }
+  },
+  "drivers": [
+    {
+      "id": "mood-cycler",
+      "name": {
+        "en": "Mood Cycler",
+        "ru": "Переключатель настроений"
+      },
+      "class": "other",
+      "capabilities": ["button"],
+      "capabilitiesOptions": {
+        "button": {
+          "title": {
+            "en": "Cycle Mood",
+            "ru": "Следующее настроение"
+          }
+        }
+      },
+      "platforms": ["local"],
+      "connectivity": ["lan"],
+      "pair": [
+        {
+          "id": "list_devices",
+          "template": "list_devices",
+          "navigation": {
+            "next": "add_devices"
+          }
+        },
+        {
+          "id": "add_devices",
+          "template": "add_devices"
+        }
+      ]
+    }
+  ],
+  "flow": {
+    "actions": [
+      {
+        "id": "sync-moods",
+        "title": {
+          "en": "Sync moods",
+          "ru": "Обновить список mood"
+        },
+        "titleFormatted": {
+          "en": "Sync moods for [[device]]",
+          "ru": "Обновить mood для [[device]]"
+        },
+        "hint": {
+          "en": "Refresh the list of available moods for this room",
+          "ru": "Обновить список доступных настроений для этой комнаты"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=mood-cycler"
+          }
+        ]
+      },
+      {
+        "id": "cycle-mood",
+        "title": {
+          "en": "Cycle mood",
+          "ru": "Переключить mood"
+        },
+        "titleFormatted": {
+          "en": "Cycle to next mood on [[device]]",
+          "ru": "Следующий mood на [[device]]"
+        },
+        "hint": {
+          "en": "Activate the next mood in the list",
+          "ru": "Активировать следующее настроение в списке"
+        },
+        "args": [
+          {
+            "type": "device",
+            "name": "device",
+            "filter": "driver_id=mood-cycler"
+          }
+        ]
+      }
+    ]
+  }
+}
