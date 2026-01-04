@@ -1,0 +1,21 @@
+{
+  "title": {
+    "en": "Cycle mood",
+    "ru": "Переключить mood"
+  },
+  "titleFormatted": {
+    "en": "Cycle to next mood on [[device]]",
+    "ru": "Следующий mood на [[device]]"
+  },
+  "hint": {
+    "en": "Activate the next mood in the list",
+    "ru": "Активировать следующее настроение в списке"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=mood-cycler"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "com.mood-cycler",
+  "version": "1.0.0",
+  "compatibility": ">=5.0.0",
+  "sdk": 3,
+  "platforms": ["local"],
+  "name": {
+    "en": "Mood Cycler",
+    "ru": "Переключатель настроений"
+  },
+  "description": {
+    "en": "Cycle through room moods with a virtual device",
+    "ru": "Переключайте настроения комнаты виртуальным устройством"
+  },
+  "category": ["tools"],
+  "permissions": ["homey:manager:api"],
+  "author": {
+    "name": "Mood Cycler Developer"
+  },
+  "brandColor": "#6B5B95",
+  "api": {
+    "getDevices": {
+      "method": "GET",
+      "path": "/devices"
+    }
+  }
+}

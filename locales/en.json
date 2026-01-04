@@ -1,0 +1,20 @@
+{
+  "errors": {
+    "no_moods": "No moods available. Please sync first.",
+    "no_zone": "No zone configured for this device.",
+    "sync_failed": "Failed to sync moods.",
+    "cycle_failed": "Failed to cycle mood."
+  },
+  "settings": {
+    "title": "Mood Cycler Settings",
+    "devices": "Devices",
+    "zone": "Zone",
+    "moods": "Moods",
+    "current_mood": "Current Mood",
+    "last_sync": "Last Sync",
+    "never": "Never",
+    "no_moods": "No moods synced",
+    "refresh": "Refresh",
+    "loading": "Loading..."
+  }
+}

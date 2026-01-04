@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" width="50" height="50">
+  <!-- Circular arrows representing cycling -->
+  <circle cx="25" cy="25" r="18" fill="none" stroke="#6B5B95" stroke-width="3" stroke-dasharray="80 33"/>
+  <!-- Arrow heads -->
+  <path d="M38 12 L43 17 L36 18 Z" fill="#6B5B95"/>
+  <path d="M12 38 L7 33 L14 32 Z" fill="#6B5B95"/>
+  <!-- Center dot representing mood -->
+  <circle cx="25" cy="25" r="6" fill="#6B5B95"/>
+</svg>

@@ -1,0 +1,21 @@
+{
+  "title": {
+    "en": "Sync moods",
+    "ru": "Обновить список mood"
+  },
+  "titleFormatted": {
+    "en": "Sync moods for [[device]]",
+    "ru": "Обновить mood для [[device]]"
+  },
+  "hint": {
+    "en": "Refresh the list of available moods for this room",
+    "ru": "Обновить список доступных настроений для этой комнаты"
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=mood-cycler"
+    }
+  ]
+}

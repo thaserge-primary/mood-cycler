@@ -1,0 +1,15 @@
+{
+  "name": "com.mood-cycler",
+  "version": "1.0.0",
+  "description": "Cycle through room moods with a virtual device",
+  "main": "app.js",
+  "scripts": {
+    "build": "homey app build",
+    "run": "homey app run",
+    "install": "homey app install"
+  },
+  "author": {
+    "name": "Mood Cycler Developer"
+  },
+  "license": "MIT"
+}
