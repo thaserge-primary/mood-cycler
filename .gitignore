@@ -26,4 +26,4 @@ npm-debug.log*
 
 
 # Added by Homey CLI
-/.homeybuild/
+/.homeybuild/package-lock.json
