@@ -67,14 +67,14 @@ class MoodCyclerDevice extends Homey.Device {
     const zoneId = this.getZoneId();
 
     if (!zoneId) {
-      throw new Error('No zone ID configured for this device');
+      throw new Error(this.homey.__('errors.no_zone') || 'No zone ID configured for this device');
     }
 
     this.log(`Syncing moods for zone: ${zoneId}`);
 
     try {
-      // Get Homey API instance
-      const api = await this.homey.api.getApi();
+      // Get HomeyAPI instance from app
+      const api = this.homey.app.homeyApi;
 
       // Get all moods
       const allMoods = await api.moods.getMoods();
@@ -107,7 +107,7 @@ class MoodCyclerDevice extends Homey.Device {
       return zoneMoods;
     } catch (error) {
       this.error('Failed to sync moods:', error);
-      throw error;
+      throw new Error(this.homey.__('errors.sync_failed') || 'Failed to sync moods');
     }
   }
 
@@ -119,7 +119,7 @@ class MoodCyclerDevice extends Homey.Device {
 
     if (moods.length === 0) {
       this.log('No moods synced. Please run sync first.');
-      throw new Error(this.homey.__('errors.no_moods'));
+      throw new Error(this.homey.__('errors.no_moods') || 'No moods available. Please sync first.');
     }
 
     // Get current index
@@ -132,15 +132,8 @@ class MoodCyclerDevice extends Homey.Device {
     this.log(`Cycling mood: ${nextMood.name} (${nextIndex + 1}/${moods.length})`);
 
     try {
-      // Get Homey API instance
-      const api = await this.homey.api.getApi();
-
-      // Activate the mood using flow card action
-      await api.flow.runFlowCardAction({
-        uri: `homey:mood:${nextMood.id}`,
-        id: `homey:mood:${nextMood.id}:set`,
-        args: {}
-      });
+      // Activate the mood
+      await this.activateMood(nextMood.id);
 
       // Save new index
       await this.setStoreValue('currentIndex', nextIndex);
@@ -149,8 +142,54 @@ class MoodCyclerDevice extends Homey.Device {
 
       return nextMood;
     } catch (error) {
-      this.error('Failed to activate mood:', error);
-      throw error;
+      this.error('Failed to cycle mood:', error);
+      throw new Error(this.homey.__('errors.cycle_failed') || 'Failed to cycle mood');
+    }
+  }
+
+  /**
+   * Activate a mood with fallback to HomeyScript
+   */
+  async activateMood(moodId) {
+    try {
+      // Try direct activation via flow card action
+      await this.homey.app.homeyApi.flow.runFlowCardAction({
+        uri: `homey:mood:${moodId}`,
+        id: `homey:mood:${moodId}:set`,
+        args: {}
+      });
+      this.log(`Mood ${moodId} activated directly`);
+    } catch (err) {
+      // Check if it's a scope/permission error
+      if (err.message && (err.message.includes('Missing Scopes') ||
+          err.message.includes('missing_scopes') ||
+          err.message.includes('scopes'))) {
+        this.log('Direct activation failed, trying HomeyScript fallback...');
+        await this.activateMoodViaScript(moodId);
+      } else {
+        throw err;
+      }
+    }
+  }
+
+  /**
+   * Fallback: Activate mood via HomeyScript
+   * Requires HomeyScript app installed and a script named 'mood-cycler-activate'
+   */
+  async activateMoodViaScript(moodId) {
+    try {
+      await this.homey.app.homeyApi.flow.runFlowCardAction({
+        uri: 'homey:app:com.athom.homeyscript',
+        id: 'homey:app:com.athom.homeyscript:run',
+        args: {
+          script: 'mood-cycler-activate',
+          argument: moodId
+        }
+      });
+      this.log(`Mood ${moodId} activated via HomeyScript`);
+    } catch (error) {
+      this.error('HomeyScript fallback failed:', error);
+      throw new Error('Failed to activate mood. Please check that HomeyScript is installed and the mood-cycler-activate script exists. See README for setup instructions.');
     }
   }
 

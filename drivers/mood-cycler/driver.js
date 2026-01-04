@@ -9,8 +9,10 @@ class MoodCyclerDriver extends Homey.Driver {
   }
 
   async onPairListDevices() {
+    // Get HomeyAPI instance from app
+    const api = this.homey.app.homeyApi;
+
     // Get all zones to allow user to create a Mood Cycler for any room
-    const api = await this.homey.api.getApi();
     const zones = await api.zones.getZones();
 
     const devices = Object.values(zones).map(zone => ({
