@@ -42,7 +42,6 @@
         }
       },
       "platforms": ["local"],
-      "connectivity": ["lan"],
       "pair": [
         {
           "id": "list_devices",
