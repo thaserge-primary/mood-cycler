@@ -45,14 +45,15 @@ class MoodCyclerDevice extends Homey.Device {
   }
 
   /**
-   * Get the zone ID for this device using SDK method
+   * Get the zone ID for this device
+   * this.getZone() returns a string (zoneId), not an object
    */
   getZoneId() {
     try {
-      // Use SDK method to get device zone
-      const zone = this.getZone();
-      if (zone && zone.id) {
-        return zone.id;
+      // this.getZone() returns string zoneId directly
+      const zoneId = this.getZone();
+      if (zoneId) {
+        return zoneId;
       }
     } catch (error) {
       this.error('Failed to get zone:', error);
@@ -79,7 +80,7 @@ class MoodCyclerDevice extends Homey.Device {
       const allMoods = await this.homey.moods.getMoods();
 
       // Filter moods for this zone
-      // mood.zone is a string ID (not an object)
+      // mood.zone is a string (zoneId)
       const zoneMoods = Object.values(allMoods)
         .filter(mood => mood.zone === zoneId)
         .map(mood => ({
