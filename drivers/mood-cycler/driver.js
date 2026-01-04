@@ -14,26 +14,22 @@ class MoodCyclerDriver extends Homey.Driver {
 
   async onPairListDevices() {
     try {
-      // Use built-in SDK manager to get zones
-      const zones = await this.homey.zones.getZones();
-
-      const devices = Object.values(zones).map(zone => ({
-        name: `Mood Cycler - ${zone.name}`,
+      // Return a single virtual device
+      // Homey will ask the user which room to add it to
+      // The device will get its zone automatically after being added
+      const devices = [{
+        name: 'Mood Cycler',
         data: {
-          id: `mood-cycler-${zone.id}`,
-          zoneId: zone.id
+          id: `mood-cycler-${Date.now()}`
         },
         store: {
           moods: [],
           currentIndex: 0,
           lastSync: null
-        },
-        settings: {
-          zoneName: zone.name
         }
-      }));
+      }];
 
-      this.log(`Found ${devices.length} zones for pairing`);
+      this.log('Mood Cycler device available for pairing');
       return devices;
     } catch (error) {
       this.error('Failed to list devices for pairing:', error);

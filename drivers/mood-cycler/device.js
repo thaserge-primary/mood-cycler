@@ -45,22 +45,20 @@ class MoodCyclerDevice extends Homey.Device {
   }
 
   /**
-   * Get the zone ID for this device
+   * Get the zone ID for this device using SDK method
    */
   getZoneId() {
-    // First try from device data (set during pairing)
-    const data = this.getData();
-    if (data && data.zoneId) {
-      return data.zoneId;
+    try {
+      // Use SDK method to get device zone
+      const zone = this.getZone();
+      if (zone && zone.id) {
+        return zone.id;
+      }
+    } catch (error) {
+      this.error('Failed to get zone:', error);
     }
 
-    // Fallback to store value
-    const storedZoneId = this.getStoreValue('zoneId');
-    if (storedZoneId) {
-      return storedZoneId;
-    }
-
-    this.error('No zone ID found for device');
+    this.error('No zone found for device');
     return null;
   }
 
@@ -71,7 +69,7 @@ class MoodCyclerDevice extends Homey.Device {
     const zoneId = this.getZoneId();
 
     if (!zoneId) {
-      throw new Error(this.homey.__('errors.no_zone') || 'No zone ID configured for this device');
+      throw new Error(this.homey.__('errors.no_zone') || 'No zone configured for this device');
     }
 
     this.log(`Syncing moods for zone: ${zoneId}`);
@@ -80,7 +78,8 @@ class MoodCyclerDevice extends Homey.Device {
       // Use built-in SDK manager to get moods
       const allMoods = await this.homey.moods.getMoods();
 
-      // Filter moods for this zone (mood.zone is a string ID)
+      // Filter moods for this zone
+      // mood.zone is a string ID (not an object)
       const zoneMoods = Object.values(allMoods)
         .filter(mood => mood.zone === zoneId)
         .map(mood => ({
