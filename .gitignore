@@ -23,3 +23,7 @@ Thumbs.db
 npm-debug.log*
 
 # Note: app.json is committed to allow direct installation without build step
+
+
+# Added by Homey CLI
+/.homeybuild/
