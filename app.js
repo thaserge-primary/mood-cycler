@@ -1,25 +1,20 @@
 'use strict';
 
 const Homey = require('homey');
-const { HomeyAPI } = require('homey-api');
 
 class MoodCyclerApp extends Homey.App {
 
   async onInit() {
-    this.log('Mood Cycler app is initializing...');
+    try {
+      this.log('Mood Cycler app is initializing...');
 
-    // Create HomeyAPI instance for accessing moods, zones, etc.
-    // Requires permission: homey:manager:api
-    this.homeyApi = await HomeyAPI.createAppAPI({
-      homey: this.homey,
-    });
+      // Register flow action cards
+      this._registerFlowCards();
 
-    this.log('HomeyAPI instance created');
-
-    // Register flow action cards
-    this._registerFlowCards();
-
-    this.log('Mood Cycler app has been initialized');
+      this.log('Mood Cycler app has been initialized');
+    } catch (error) {
+      this.error('Failed to initialize app:', error);
+    }
   }
 
   _registerFlowCards() {

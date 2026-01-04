@@ -5,34 +5,40 @@ const Homey = require('homey');
 class MoodCyclerDriver extends Homey.Driver {
 
   async onInit() {
-    this.log('Mood Cycler driver has been initialized');
+    try {
+      this.log('Mood Cycler driver has been initialized');
+    } catch (error) {
+      this.error('Failed to initialize driver:', error);
+    }
   }
 
   async onPairListDevices() {
-    // Get HomeyAPI instance from app
-    const api = this.homey.app.homeyApi;
+    try {
+      // Use built-in SDK manager to get zones
+      const zones = await this.homey.zones.getZones();
 
-    // Get all zones to allow user to create a Mood Cycler for any room
-    const zones = await api.zones.getZones();
+      const devices = Object.values(zones).map(zone => ({
+        name: `Mood Cycler - ${zone.name}`,
+        data: {
+          id: `mood-cycler-${zone.id}`,
+          zoneId: zone.id
+        },
+        store: {
+          moods: [],
+          currentIndex: 0,
+          lastSync: null
+        },
+        settings: {
+          zoneName: zone.name
+        }
+      }));
 
-    const devices = Object.values(zones).map(zone => ({
-      name: `Mood Cycler - ${zone.name}`,
-      data: {
-        id: `mood-cycler-${zone.id}`,
-        zoneId: zone.id
-      },
-      store: {
-        moods: [],
-        currentIndex: 0,
-        lastSync: null
-      },
-      settings: {
-        zoneName: zone.name
-      }
-    }));
-
-    this.log(`Found ${devices.length} zones for pairing`);
-    return devices;
+      this.log(`Found ${devices.length} zones for pairing`);
+      return devices;
+    } catch (error) {
+      this.error('Failed to list devices for pairing:', error);
+      return [];
+    }
   }
 
 }
