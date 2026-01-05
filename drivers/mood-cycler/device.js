@@ -82,8 +82,8 @@ class MoodCyclerDevice extends Homey.Device {
 
     this.log(`Cycling mood: ${nextMood.name} (${nextIndex + 1}/${moods.length})`);
 
-    // Activate the mood using built-in SDK manager
-    await this.homey.moods.setMood({ id: nextMood.id });
+    // Activate the mood
+    await this.activateMood(nextMood.id);
 
     // Save new index
     await this.setStoreValue('currentIndex', nextIndex);
@@ -91,6 +91,46 @@ class MoodCyclerDevice extends Homey.Device {
     this.log(`Activated mood: ${nextMood.name}`);
 
     return nextMood;
+  }
+
+  /**
+   * Activate a mood using Flow Card Action
+   * This method works (tested in HomeyScript)
+   */
+  async activateMood(moodId) {
+    try {
+      // Primary method: use flow card action
+      await this.homey.flow.runFlowCardAction({
+        uri: `homey:mood:${moodId}`,
+        id: `homey:mood:${moodId}:set`,
+        args: {}
+      });
+      this.log(`Mood ${moodId} activated via flow card`);
+    } catch (error) {
+      // Check if it's a scope error
+      if (error.message && error.message.includes('Missing Scopes')) {
+        this.log('Flow card failed, trying HomeyScript fallback...');
+        await this.activateMoodViaScript(moodId);
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  /**
+   * Fallback: Activate mood via HomeyScript
+   * Requires script "mood-cycler-activate" in HomeyScript app
+   */
+  async activateMoodViaScript(moodId) {
+    await this.homey.flow.runFlowCardAction({
+      uri: 'homey:app:com.athom.homeyscript',
+      id: 'homey:app:com.athom.homeyscript:run',
+      args: {
+        script: 'mood-cycler-activate',
+        argument: moodId
+      }
+    });
+    this.log(`Mood ${moodId} activated via HomeyScript`);
   }
 
   /**
