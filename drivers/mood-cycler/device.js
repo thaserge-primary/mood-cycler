@@ -15,7 +15,6 @@ class MoodCyclerDevice extends Homey.Device {
 
   async onAdded() {
     this.log('Mood Cycler device has been added');
-    // No auto-sync - user must run sync via Flow
   }
 
   async onDeleted() {
@@ -27,7 +26,7 @@ class MoodCyclerDevice extends Homey.Device {
    * Called via Flow action "sync-moods"
    */
   async syncMoods() {
-    // this.getZone() returns string zoneId directly
+    // Get zone ID only when action runs (not in onInit)
     const zoneId = this.getZone();
 
     if (!zoneId) {
@@ -36,10 +35,10 @@ class MoodCyclerDevice extends Homey.Device {
 
     this.log(`Syncing moods for zone: ${zoneId}`);
 
-    // Use built-in SDK manager to get moods
+    // Use SDK moods manager to get moods
     const allMoods = await this.homey.moods.getMoods();
 
-    // Filter moods for this zone (mood.zone is a string zoneId)
+    // Filter moods for this zone
     const zoneMoods = Object.values(allMoods)
       .filter(mood => mood.zone === zoneId)
       .map(mood => ({
@@ -54,7 +53,6 @@ class MoodCyclerDevice extends Homey.Device {
 
     this.log(`Synced ${zoneMoods.length} moods for zone ${zoneId}`);
 
-    // Log mood names for debugging
     zoneMoods.forEach((mood, index) => {
       this.log(`  ${index + 1}. ${mood.name}`);
     });
@@ -80,10 +78,10 @@ class MoodCyclerDevice extends Homey.Device {
     const nextIndex = (currentIndex + 1) % moods.length;
     const nextMood = moods[nextIndex];
 
-    this.log(`Cycling mood: ${nextMood.name} (${nextIndex + 1}/${moods.length})`);
+    this.log(`Cycling to mood: ${nextMood.name} (${nextIndex + 1}/${moods.length})`);
 
-    // Activate the mood
-    await this.activateMood(nextMood.id);
+    // Activate the mood using SDK moods manager
+    await this.homey.moods.setMood({ id: nextMood.id });
 
     // Save new index
     await this.setStoreValue('currentIndex', nextIndex);
@@ -94,47 +92,7 @@ class MoodCyclerDevice extends Homey.Device {
   }
 
   /**
-   * Activate a mood using Flow Card Action
-   * This method works (tested in HomeyScript)
-   */
-  async activateMood(moodId) {
-    try {
-      // Primary method: use flow card action
-      await this.homey.flow.runFlowCardAction({
-        uri: `homey:mood:${moodId}`,
-        id: `homey:mood:${moodId}:set`,
-        args: {}
-      });
-      this.log(`Mood ${moodId} activated via flow card`);
-    } catch (error) {
-      // Check if it's a scope error
-      if (error.message && error.message.includes('Missing Scopes')) {
-        this.log('Flow card failed, trying HomeyScript fallback...');
-        await this.activateMoodViaScript(moodId);
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  /**
-   * Fallback: Activate mood via HomeyScript
-   * Requires script "mood-cycler-activate" in HomeyScript app
-   */
-  async activateMoodViaScript(moodId) {
-    await this.homey.flow.runFlowCardAction({
-      uri: 'homey:app:com.athom.homeyscript',
-      id: 'homey:app:com.athom.homeyscript:run',
-      args: {
-        script: 'mood-cycler-activate',
-        argument: moodId
-      }
-    });
-    this.log(`Mood ${moodId} activated via HomeyScript`);
-  }
-
-  /**
-   * Get device status for settings page
+   * Get device status
    */
   getStatus() {
     return {
