@@ -12,7 +12,5 @@
     "name": "Mood Cycler Developer"
   },
   "license": "MIT",
-  "dependencies": {
-    "homey-api": "^1.0.0"
-  }
+  "dependencies": {}
 }
