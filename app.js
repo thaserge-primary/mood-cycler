@@ -8,11 +8,7 @@ class MoodCyclerApp extends Homey.App {
   async onInit() {
     this.log('Mood Cycler app is initializing...');
 
-    // Create HomeyAPI instance for accessing moods, zones, etc.
-    // Requires permission: homey:manager:api
-    this.homeyApi = await HomeyAPI.createAppAPI({
-      homey: this.homey,
-    });
+  
 
     this.log('HomeyAPI instance created');
 
