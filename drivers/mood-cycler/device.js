@@ -5,39 +5,17 @@ const Homey = require('homey');
 class MoodCyclerDevice extends Homey.Device {
 
   async onInit() {
-    try {
-      this.log('Mood Cycler device has been initialized');
+    this.log('Mood Cycler device has been initialized');
 
-      // Register capability listener for the button
-      this.registerCapabilityListener('button', async () => {
-        await this.cycleMood();
-      });
-
-      // Auto-sync moods on first init if no moods stored
-      const moods = this.getStoreValue('moods');
-      if (!moods || moods.length === 0) {
-        this.log('No moods stored, running initial sync...');
-        try {
-          await this.syncMoods();
-        } catch (error) {
-          this.error('Initial sync failed:', error);
-        }
-      }
-    } catch (error) {
-      this.error('Failed to initialize device:', error);
-    }
+    // Register capability listener for the button
+    this.registerCapabilityListener('button', async () => {
+      await this.cycleMood();
+    });
   }
 
   async onAdded() {
-    try {
-      this.log('Mood Cycler device has been added');
-
-      // Sync moods immediately after adding the device
-      await this.syncMoods();
-      this.log('Initial mood sync completed');
-    } catch (error) {
-      this.error('Failed to sync moods on add:', error);
-    }
+    this.log('Mood Cycler device has been added');
+    // No auto-sync - user must run sync via Flow
   }
 
   async onDeleted() {
@@ -45,82 +23,54 @@ class MoodCyclerDevice extends Homey.Device {
   }
 
   /**
-   * Get the zone ID for this device
-   * this.getZone() returns a string (zoneId), not an object
-   */
-  getZoneId() {
-    try {
-      // this.getZone() returns string zoneId directly
-      const zoneId = this.getZone();
-      if (zoneId) {
-        return zoneId;
-      }
-    } catch (error) {
-      this.error('Failed to get zone:', error);
-    }
-
-    this.error('No zone found for device');
-    return null;
-  }
-
-  /**
    * Sync moods from Homey for this device's zone
+   * Called via Flow action "sync-moods"
    */
   async syncMoods() {
-    const zoneId = this.getZoneId();
+    // this.getZone() returns string zoneId directly
+    const zoneId = this.getZone();
 
     if (!zoneId) {
-      throw new Error(this.homey.__('errors.no_zone') || 'No zone configured for this device');
+      throw new Error('Device not assigned to a zone');
     }
 
     this.log(`Syncing moods for zone: ${zoneId}`);
 
-    try {
-      // Use built-in SDK manager to get moods
-      const allMoods = await this.homey.moods.getMoods();
+    // Use built-in SDK manager to get moods
+    const allMoods = await this.homey.moods.getMoods();
 
-      // Filter moods for this zone
-      // mood.zone is a string (zoneId)
-      const zoneMoods = Object.values(allMoods)
-        .filter(mood => mood.zone === zoneId)
-        .map(mood => ({
-          id: mood.id,
-          name: mood.name
-        }));
+    // Filter moods for this zone (mood.zone is a string zoneId)
+    const zoneMoods = Object.values(allMoods)
+      .filter(mood => mood.zone === zoneId)
+      .map(mood => ({
+        id: mood.id,
+        name: mood.name
+      }));
 
-      // Save to store
-      await this.setStoreValue('moods', zoneMoods);
-      await this.setStoreValue('lastSync', new Date().toISOString());
+    // Save to store
+    await this.setStoreValue('moods', zoneMoods);
+    await this.setStoreValue('currentIndex', 0);
+    await this.setStoreValue('lastSync', new Date().toISOString());
 
-      // Reset index if it's out of bounds
-      const currentIndex = this.getStoreValue('currentIndex') || 0;
-      if (currentIndex >= zoneMoods.length) {
-        await this.setStoreValue('currentIndex', 0);
-      }
+    this.log(`Synced ${zoneMoods.length} moods for zone ${zoneId}`);
 
-      this.log(`Synced ${zoneMoods.length} moods for zone ${zoneId}`);
+    // Log mood names for debugging
+    zoneMoods.forEach((mood, index) => {
+      this.log(`  ${index + 1}. ${mood.name}`);
+    });
 
-      // Log mood names for debugging
-      zoneMoods.forEach((mood, index) => {
-        this.log(`  ${index + 1}. ${mood.name}`);
-      });
-
-      return zoneMoods;
-    } catch (error) {
-      this.error('Failed to sync moods:', error);
-      throw new Error(this.homey.__('errors.sync_failed') || 'Failed to sync moods');
-    }
+    return zoneMoods;
   }
 
   /**
    * Cycle to the next mood in the list
+   * Called via Flow action "cycle-mood" or button press
    */
   async cycleMood() {
-    const moods = this.getStoreValue('moods') || [];
+    const moods = this.getStoreValue('moods');
 
-    if (moods.length === 0) {
-      this.log('No moods synced. Please run sync first.');
-      throw new Error(this.homey.__('errors.no_moods') || 'No moods available. Please sync first.');
+    if (!moods || moods.length === 0) {
+      throw new Error('No moods synced. Run sync first.');
     }
 
     // Get current index
@@ -132,20 +82,15 @@ class MoodCyclerDevice extends Homey.Device {
 
     this.log(`Cycling mood: ${nextMood.name} (${nextIndex + 1}/${moods.length})`);
 
-    try {
-      // Activate the mood using built-in SDK manager
-      await this.homey.moods.setMood({ id: nextMood.id });
+    // Activate the mood using built-in SDK manager
+    await this.homey.moods.setMood({ id: nextMood.id });
 
-      // Save new index
-      await this.setStoreValue('currentIndex', nextIndex);
+    // Save new index
+    await this.setStoreValue('currentIndex', nextIndex);
 
-      this.log(`Activated mood: ${nextMood.name}`);
+    this.log(`Activated mood: ${nextMood.name}`);
 
-      return nextMood;
-    } catch (error) {
-      this.error('Failed to cycle mood:', error);
-      throw new Error(this.homey.__('errors.cycle_failed') || 'Failed to cycle mood');
-    }
+    return nextMood;
   }
 
   /**
@@ -153,7 +98,7 @@ class MoodCyclerDevice extends Homey.Device {
    */
   getStatus() {
     return {
-      zoneId: this.getZoneId(),
+      zoneId: this.getZone(),
       moods: this.getStoreValue('moods') || [],
       currentIndex: this.getStoreValue('currentIndex') || 0,
       lastSync: this.getStoreValue('lastSync')
